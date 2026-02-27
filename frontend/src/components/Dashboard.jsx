@@ -23,7 +23,19 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-800">系統概覽</h1>
+      <div className="flex justify-between items-end">
+        <h1 className="text-3xl font-bold text-gray-800">系統概覽</h1>
+        <div className="text-right">
+          <p className="text-xs text-gray-400 font-medium uppercase tracking-widest mb-1">系統核心需求</p>
+          <div className="flex gap-2">
+            {['客戶建檔', '物品登錄', '2% 利息計算', '警示功能'].map(tag => (
+              <span key={tag} className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold border border-slate-200">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* 統計卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
