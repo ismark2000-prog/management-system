@@ -58,5 +58,36 @@ app.get('/api/dashboard', (req, res) => {
     res.json({ total_items: rows.length, alert_count: alerts.length, alerts: alerts.map(item => ({ ...item, days_left: dayjs(item.expiry_date).diff(dayjs(), 'day') })) });
   });
 });
+
+app.get('/api/luxury-items', (req, res) => {
+  db.all('SELECT * FROM luxury_items ORDER BY id DESC', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.post('/api/luxury-items', upload.single('photo'), (req, res) => {
+  const { brand, model, condition, tags, cost_price, wholesale_price, retail_price, source } = req.body;
+  const photo_path = req.file ? `/uploads/${req.file.filename}` : (req.body.photo_path || null);
+
+  const datePrefix = dayjs().format('YYMM');
+  const skuPrefix = `LUX-${datePrefix}-`;
+
+  db.get('SELECT COUNT(*) as count FROM luxury_items WHERE sku LIKE ?', [`${skuPrefix}%`], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const count = row.count + 1;
+    const sku = `${skuPrefix}${String(count).padStart(3, '0')}`;
+
+    const query = `INSERT INTO luxury_items (sku, brand, model, condition, tags, cost_price, wholesale_price, retail_price, photo_path, source)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const params = [sku, brand, model, condition, tags, cost_price, wholesale_price, retail_price, photo_path, source];
+
+    db.run(query, params, function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ id: this.lastID, sku });
+    });
+  });
+});
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, '../frontend/dist/index.html')));
 app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
